@@ -1,6 +1,7 @@
 package com.example.studentregister
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -11,113 +12,116 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.studentregister.databinding.ActivityMainBinding
 import com.example.studentregister.db.Student
 import com.example.studentregister.db.StudentDatabase
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var nameEditText: EditText
-    private lateinit var emailEditText: EditText
-    private lateinit var saveButton: Button
-    private lateinit var clearButton: Button
-
+    private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: StudentViewModel
-    private lateinit var studentRecyclerView: RecyclerView
     private lateinit var adapter: StudentRecyclerViewAdapter
 
     private var selectedStudent: Student? = null
     private var isListItemClicked = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        nameEditText = findViewById(R.id.etName)
-        emailEditText = findViewById(R.id.etEmail)
-        saveButton = findViewById(R.id.btnSave)
-        clearButton = findViewById(R.id.btnClear)
-        studentRecyclerView = findViewById(R.id.rvStudent)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
         val dao = StudentDatabase.getInstance(application).studentDao()
         val factory = StudentViewModelFactory(dao)
         viewModel = ViewModelProvider(this, factory).get(StudentViewModel::class.java)
 
-        saveButton.setOnClickListener {
-            if(isListItemClicked){
-                updateStudentData()
-                clearInput()
+        binding.apply {
+            btnSave.setOnClickListener {
+                if(isListItemClicked){
+                    updateStudentData()
+                    clearInput()
+                }
+                else{
+                    saveStudentData()
+                    clearInput()
+                }
             }
-            else{
-                saveStudentData()
-                clearInput()
-            }
-        }
 
-        clearButton.setOnClickListener {
-            if(isListItemClicked){
-                deleteStudentData()
-                clearInput()
+            btnClear.setOnClickListener {
+                if(isListItemClicked){
+                    deleteStudentData()
+                    clearInput()
+                }
+                else{
+                    clearInput()
+                }
             }
-            else{
-                clearInput()
-            }
-        }
 
-        initRecyclerView()
+            initRecyclerView()
+        }
     }
 
     private fun saveStudentData(){
-        viewModel.insertStudent(
-            Student(
-                0,
-                nameEditText.text.toString(),
-                emailEditText.text.toString()
+        binding.apply {
+            viewModel.insertStudent(
+                Student(
+                    0,
+                    etName.text.toString(),
+                    etEmail.text.toString()
+                )
             )
-        )
+        }
     }
 
     private fun updateStudentData(){
-        viewModel.updateStudent(
-            Student(
-                selectedStudent!!.id,
-                nameEditText.text.toString(),
-                emailEditText.text.toString()
+        binding.apply {
+            viewModel.updateStudent(
+                Student(
+                    selectedStudent!!.id,
+                    etName.text.toString(),
+                    etEmail.text.toString()
+                )
             )
-        )
 
-        selectedStudent = null
-        saveButton.text = "Save"
-        clearButton.text = "Clear"
-        isListItemClicked = false
+            selectedStudent = null
+            btnSave.text = "Save"
+            btnClear.text = "Clear"
+            isListItemClicked = false
+        }
     }
 
     private fun deleteStudentData(){
-        viewModel.deleteStudent(
-            Student(
-                selectedStudent!!.id,
-                nameEditText.text.toString(),
-                emailEditText.text.toString()
+        binding.apply {
+            viewModel.deleteStudent(
+                Student(
+                    selectedStudent!!.id,
+                    etName.text.toString(),
+                    etEmail.text.toString()
+                )
             )
-        )
 
-        selectedStudent = null
-        saveButton.text = "Save"
-        clearButton.text = "Clear"
-        isListItemClicked = false
+            selectedStudent = null
+            btnSave.text = "Save"
+            btnClear.text = "Clear"
+            isListItemClicked = false
+        }
     }
 
     private fun clearInput(){
-        nameEditText.setText("")
-        emailEditText.setText("")
+        binding.apply {
+            etName.setText("")
+            etEmail.setText("")
+        }
     }
 
     private fun initRecyclerView(){
-        studentRecyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = StudentRecyclerViewAdapter{
-            selectedItem: Student -> listItemClicked(selectedItem)
-        }
-        studentRecyclerView.adapter = adapter
+        binding.apply {
+            rvStudent.layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = StudentRecyclerViewAdapter{
+                    selectedItem: Student -> listItemClicked(selectedItem)
+            }
+            rvStudent.adapter = adapter
 
-        displayStudentsList()
+            displayStudentsList()
+        }
     }
 
     private fun displayStudentsList(){
@@ -128,11 +132,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun listItemClicked(student: Student){
-        selectedStudent = student
-        saveButton.text = "Update"
-        clearButton.text = "Delete"
-        isListItemClicked = true
-        nameEditText.setText(selectedStudent!!.name)
-        emailEditText.setText(selectedStudent!!.email)
+        binding.apply {
+            selectedStudent = student
+            btnSave.text = "Update"
+            btnClear.text = "Delete"
+            isListItemClicked = true
+            etName.setText(selectedStudent!!.name)
+            etEmail.setText(selectedStudent!!.email)
+        }
     }
 }
